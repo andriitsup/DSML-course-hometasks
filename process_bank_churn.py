@@ -461,8 +461,8 @@ def preprocess_data(raw_df: pd.DataFrame, scaler_numeric: bool = False) -> Tuple
 #     }
 
 #     return result
-
-def preprocess_new_data(new_data: pd.DataFrame, numeric_cols: List[str], categorical_cols: List[str], scaler: MinMaxScaler, encoder: OneHotEncoder) -> pd.DataFrame:
+# numeric_cols: List[str], categorical_cols: List[str],
+def preprocess_new_data(new_data: pd.DataFrame, scaler, encoder) -> pd.DataFrame:
     """
     Preprocess new data using the trained scaler and encoder.
     
@@ -485,5 +485,29 @@ def preprocess_new_data(new_data: pd.DataFrame, numeric_cols: List[str], categor
     new_data_processed = new_data.drop(columns=categorical_cols).join(new_encoded)
     
     return new_data_processed
+def preprocess_new_data(new_data: pd.DataFrame, scaler: MinMaxScaler, encoder: OneHotEncoder) -> pd.DataFrame:
+    """
+    Preprocess new data using the trained scaler and encoder.
+    
+    Args:
+        new_data (pd.DataFrame): The new data to preprocess.
+        scaler (MinMaxScaler): The trained scaler.
+        encoder (OneHotEncoder): The trained encoder.
+        
+    Returns:
+        pd.DataFrame: The preprocessed new data.
+    """
+    # Identify column types
+    numeric_cols = scaler.feature_names_in_
+    categorical_cols = encoder.feature_names_in_
 
+    # Scale numeric features
+    new_data[numeric_cols] = scaler.transform(new_data[numeric_cols])
+    
+    # One-hot encode categorical features
+    encoded_cols = encoder.get_feature_names_out(categorical_cols)
+    new_encoded = pd.DataFrame(encoder.transform(new_data[categorical_cols]), columns=encoded_cols, index=new_data.index)
+    new_data = new_data.drop(columns=categorical_cols).join(new_encoded)
+    
+    return new_data
 
